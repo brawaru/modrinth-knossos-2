@@ -1,0 +1,80 @@
+name: Translations (push)
+
+on:
+  push:
+    branches: [master]
+    paths-ignore: # definitive 'no messages here' paths
+      - '.github'
+      - '.vscode'
+      - '.idea'
+      - 'assets'
+      - 'patches'
+      - 'types'
+      - 'public'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.npmrc'
+      - '.prettierignore'
+      - '*.json'
+      - '*.js'
+      - '*.ts'
+      - '*.yml'
+      - '*.yaml'
+      - '.*.json'
+      - '.*.js'
+      - '*.md'
+      - 'LICENSE'
+      - 'locales/*'
+      - '!locales/en-US'
+
+jobs:
+  push_translations:
+    if: github.repository == 'brawaru/modrinth-knossos-2'
+    runs-on: ubuntu:22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+
+      - name: Install pnpm via corepack
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare --activate
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install -D
+
+      - name: Extract translations
+        run: pnpm intl:extract
+
+      - name: Upload translations to Crowdin
+        uses: crowdin/github-action@v1
+        with:
+          upload_sources: true
+          upload_translations: false
+          download_translations: false
+          push_translations: false
+          create_pull_request: false
+          crowdin_branch_name: master
+        env:
+          CROWDIN_PROJECT_ID: ${{ vars.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

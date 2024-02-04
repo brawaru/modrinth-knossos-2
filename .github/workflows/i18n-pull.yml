@@ -1,0 +1,46 @@
+name: Translations (pull)
+
+on:
+  schedule:
+    - cron: '0 7 * * MON' # every monday at 7 am
+  workflow_dispatch: {}
+
+jobs:
+  push_translations:
+    if: github.repository == 'brawaru/modrinth-knossos-2'
+    runs-on: ubuntu:22.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download translations from Crowdin
+        uses: crowdin/github-action@v1
+        with:
+          upload_sources: false
+          upload_translations: false
+          download_translations: true
+          push_translations: false
+          create_pull_request: false
+          crowdin_branch_name: master
+        env:
+          CROWDIN_PROJECT_ID: ${{ vars.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "New translations from Crowdin"
+          body: |-
+            Here's your automated pull request with updated translations from [our Crowdin](https://crowdin.com/project/modrinth). Merge whenever you ready.
+
+            This pull request is created according to the `.github/workflows/i18n-pull.yml` file.
+
+            Want to update this pull request? You can manually dispatch that workflow.
+          commit-message: "New translations from Crowdin"
+          branch: i18n/crowdin-master
+          base: master
+          add-paths: |
+            locales
