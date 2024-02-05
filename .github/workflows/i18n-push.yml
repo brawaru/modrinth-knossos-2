@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths-ignore: # definitive 'no messages here' paths
       - '.github'
+      - '!.github/workflows/i18n-push.yml'
       - '.vscode'
       - '.idea'
       - 'assets'
