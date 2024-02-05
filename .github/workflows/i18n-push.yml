@@ -1,4 +1,4 @@
-name: Translations (push)
+name: Crowdin (push)
 
 on:
   push:
@@ -9,6 +9,7 @@ concurrency:
 
 jobs:
   check_necessity:
+    name: Necessity check
     if: github.repository == 'brawaru/modrinth-knossos-2'
     runs-on: ubuntu-22.04
     concurrency:
@@ -40,6 +41,7 @@ jobs:
     outputs:
       result: ${{ steps.changed-files.outputs.any_changed == 'true' }}
   push_translations:
+    name: Push sources to Crowdin
     needs: check_necessity
     if: ${{ needs.check_necessity.outputs.result == 'true' }}
     runs-on: ubuntu-22.04
