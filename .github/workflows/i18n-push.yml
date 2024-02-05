@@ -16,16 +16,21 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v42
         with:
-          files_ignore_yaml: |
-            default:
-              - '/.{github,vscode,idea}'
-              - '/!.github/workflows/i18n-push.yml'
-              - '/{assets,patches,types,public,locales}'
-              - '/!locales/en-US'
-              - '/.{editorconfig,gitignore,npmrc,prettierignore}'
-              - '/{*,.*}.{json,js,ts,yml,yaml,md}'
-              - '/!crowdin.yml'
-              - '/LICENSE'
+          files_ignore: |
+            - '/.{github,vscode,idea}'
+            - '/!.github/workflows/i18n-push.yml'
+            - '/{assets,patches,types,public,locales}'
+            - '/!locales/en-US'
+            - '/.{editorconfig,gitignore,npmrc,prettierignore}'
+            - '/{*,.*}.{json,js,ts,yml,yaml,md}'
+            - '/!crowdin.yml'
+            - '/LICENSE'
+      - name: Output result
+        run: |
+          echo "${{ steps.changed-files.outputs.any_changed }}"
+          echo << EOF
+            ${{ steps.changed-files.outputs.all_changed_files }}
+          EOF
     outputs:
       result: ${{ steps.changed-files.outputs.any_changed == 'true' }}
   push_translations:
