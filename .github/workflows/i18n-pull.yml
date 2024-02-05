@@ -50,3 +50,4 @@ jobs:
           base: master
           add-paths: |
             locales
+          token: ${{ secrets.CROWDIN_GH_TOKEN }}
