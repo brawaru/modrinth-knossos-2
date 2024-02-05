@@ -24,11 +24,11 @@ jobs:
         with:
           files_ignore: |
             - '.{github,vscode,idea}'
-            - '!.github/workflows/i18n-push.yml'
             - '{assets,patches,types,public,locales}'
             - '!locales/en-US'
             - '.{editorconfig,gitignore,npmrc,prettierignore}'
-            - '{*,.*}.{json,js,ts,yml,yaml,md}'
+            - '.*.{js,json}'
+            - '*.{md,yml,yaml,json}'
             - '!crowdin.yml'
             - 'LICENSE'
       - name: Output result
