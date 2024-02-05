@@ -5,5 +5,3 @@
 For contributing information, please see the knossos section of the [Modrinth contributing guide](https://support.modrinth.com/en/articles/8802215-contributing-to-modrinth#h_1bc6570903).
 
 For a detailed explanation on how things work in general, check out the [Nuxt.js docs](https://nuxt.com).
-
-:)
