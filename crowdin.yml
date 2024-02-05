@@ -2,10 +2,6 @@ preserve_hierarchy: true
 commit_message: '[ci skip]'
 
 files:
-  - source: /locales/en-US/*
-    dest: /%original_file_name%
-    translation: /locales/%locale%/%original_file_name%
-    skip_untranslated_files: true
   - source: /locales/en-US/index.json
     dest: /%original_file_name%
     translation: /locales/%locale%/%original_file_name%
