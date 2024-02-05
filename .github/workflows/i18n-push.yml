@@ -61,7 +61,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install -D
+        run: pnpm install
 
       - name: Extract translations
         run: pnpm intl:extract
