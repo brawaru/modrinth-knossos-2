@@ -23,14 +23,16 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v42
         with:
+          files: |
+            **
+            locales/en-US/**
+            crowdin.yml
           files_ignore: |
             .{github,vscode,idea}/**
             {assets,patches,types,public,locales}/**
-            !locales/en-US/**
             .{editorconfig,gitignore,npmrc,prettierignore}
             .*.{js,json}
             *.{md,yml,yaml,json}
-            !crowdin.yml
             LICENSE
       - name: Output result
         run: |
