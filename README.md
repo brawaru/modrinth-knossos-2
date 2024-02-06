@@ -6,4 +6,3 @@ For contributing information, please see the knossos section of the [Modrinth co
 
 For a detailed explanation on how things work in general, check out the [Nuxt.js docs](https://nuxt.com).
 
-awawaw
