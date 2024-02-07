@@ -30,6 +30,7 @@ jobs:
           upload_translations: false
           download_translations: true
           download_translations_args: '--all'
+          skip_untranslated_strings: true
           push_translations: false
           create_pull_request: false
           crowdin_branch_name: '[brawaru.modrinth-knossos-2] master'
