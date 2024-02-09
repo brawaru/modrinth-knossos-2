@@ -3,24 +3,51 @@ name: Crowdin (push)
 on:
   push:
     branches: [master]
+  workflow_dispatch: {}
 
 concurrency:
   group: i18n-management
 
 jobs:
-  check_necessity:
-    name: Necessity check
-    if: github.repository == 'brawaru/modrinth-knossos-2'
+  preflight_check:
+    name: 'Pre-flight check'
     runs-on: ubuntu-22.04
     concurrency:
-      group: i18n-push
+      group: i18n-push:${{ github.ref }}
       cancel-in-progress: true
     steps:
+      - name: Preflight check
+        id: check
+        run: |
+          PREFLIGHT_CHECK_RESULT=true
+
+          function flight_failure () {
+            if [ "$PREFLIGHT_CHECK_RESULT" = true ]; then
+              echo "One or more pre-flight checks failed!"
+              echo ""
+              PREFLIGHT_CHECK_RESULT=false
+            fi
+            echo "- $1"
+          }
+
+          if [ "${{ vars.CROWDIN_PROJECT_ID }}" == "" ]; then
+            flight_failure "CROWDIN_PROJECT_ID variable is not defined (required to push)"
+          fi
+
+          if [ "${{ secrets.CROWDIN_PERSONAL_TOKEN }}" == "" ]; then
+            flight_failure "CROWDIN_PERSONAL_TOKEN secret is not defined (required to push)"
+          fi
+
+          echo "flight_ok=$PREFLIGHT_CHECK_RESULT" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
+        id: checkout
+        if: github.event_name != 'workflow_dispatch' && steps.check.outputs.flight_ok == 'true'
         uses: actions/checkout@v4
 
       - name: Confirm push necessity
         id: changed-files
+        if: steps.checkout.outcome != 'skipped'
         uses: tj-actions/changed-files@v42
         with:
           negation_patterns_first: true
@@ -35,18 +62,23 @@ jobs:
             .*.{js,json}
             *.{md,yml,yaml,json}
             LICENSE
+
       - name: Output result
+        if: steps.changed-files.outcome != 'skipped'
         run: |
-          echo "${{ steps.changed-files.outputs.any_changed }}"
-          echo << EOF
-            ${{ steps.changed-files.outputs.all_changed_files }}
+          cat << EOF
+            Changed files are ${{ steps.changed-files.outputs.all_changed_files }}
           EOF
     outputs:
-      result: ${{ steps.changed-files.outputs.any_changed == 'true' }}
+      ready: ${{ steps.check.outputs.flight_ok == 'true' && (github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true') }}
+
   push_translations:
     name: Push sources to Crowdin
-    needs: check_necessity
-    if: ${{ needs.check_necessity.outputs.result == 'true' }}
+    needs: preflight_check
+    if: always() && !failure() && !cancelled() && needs.preflight_check.outputs.ready == 'true'
+    concurrency:
+      group: i18n-push:${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -66,8 +98,7 @@ jobs:
       - name: Get pnpm store directory
         id: pnpm-cache
         shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
       - name: Setup pnpm cache
         uses: actions/cache@v3
@@ -83,6 +114,14 @@ jobs:
       - name: Extract translations
         run: pnpm intl:extract
 
+      - name: Query branch name
+        id: branch-name
+        shell: bash
+        run: |
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          echo "Branch name is $BRANCH_NAME"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
       - name: Upload translations to Crowdin
         uses: crowdin/github-action@v1
         with:
@@ -91,7 +130,7 @@ jobs:
           download_translations: false
           push_translations: false
           create_pull_request: false
-          crowdin_branch_name: '[brawaru.modrinth-knossos-2] master'
+          crowdin_branch_name: '[${{ github.event.repository.owner }}.${{ github.event.repository.name }}] ${{ steps.branch-name.outputs.branch_name }}'
         env:
           CROWDIN_PROJECT_ID: ${{ vars.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
