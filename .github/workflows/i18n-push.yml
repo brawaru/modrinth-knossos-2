@@ -30,15 +30,18 @@ jobs:
             echo "- $1"
           }
 
-          if [ "${{ vars.CROWDIN_PROJECT_ID }}" == "" ]; then
+          if [ "$CROWDIN_PROJECT_ID_DEFINED" != true ]; then
             flight_failure "CROWDIN_PROJECT_ID variable is not defined (required to push)"
           fi
 
-          if [ "${{ secrets.CROWDIN_PERSONAL_TOKEN }}" == "" ]; then
+          if [ "$CROWDIN_PERSONAL_TOKEN_DEFINED" != true ]; then
             flight_failure "CROWDIN_PERSONAL_TOKEN secret is not defined (required to push)"
           fi
 
           echo "flight_ok=$PREFLIGHT_CHECK_RESULT" >> "$GITHUB_OUTPUT"
+        env:
+          CROWDIN_PROJECT_ID_DEFINED: ${{ vars.CROWDIN_PROJECT_ID != '' }}
+          CROWDIN_PERSONAL_TOKEN_DEFINED: ${{ secrets.CROWDIN_PERSONAL_TOKEN != '' }}
 
       - name: Checkout
         id: checkout
