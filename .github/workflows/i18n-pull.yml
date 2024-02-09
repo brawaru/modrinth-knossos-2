@@ -52,7 +52,8 @@ jobs:
 
   pull_translations:
     name: 'Pull translations from Crowdin'
-    if: github.repository == 'brawaru/modrinth-knossos-2'
+    needs: preflight_check
+    if: always() && !failure() && !cancelled() && needs.preflight_check.outputs.ready == 'true'
     runs-on: ubuntu-22.04
     permissions:
       contents: write
